@@ -6,10 +6,11 @@ Dieses Projekt umfasst ein vollständiges Dashboard zur Verwaltung von Flugdaten
 
 ## Schnellstart (Deployment)
 
-Um das Projekt in einer sauberen Umgebung zu starten, folgen Sie diesen Schritten im Projektverzeichnis:
+Um das Projekt in einer sauberen Umgebung zu starten, folgen Sie diesen Schritten:
 
-### Infrastruktur aufbauen und starten
-Repo kopieren:
+### flights_clean unzippen und die csv in den root Ordner legen. 
+
+### Repo kopieren:
 ```bash
 git clone https://github.com/NiklasSchelkle/Cloud-Computing.git
 ```
@@ -68,5 +69,6 @@ Backend: FastAPI (Python)
 Datenbank: PostgreSQL
 
 Sicherheit: Passlib (Hashing), PyJWT (Tokens), OTP (MFA)
+
 
 
