@@ -9,26 +9,33 @@ Dieses Projekt umfasst ein vollständiges Dashboard zur Verwaltung von Flugdaten
 Um das Projekt in einer sauberen Umgebung zu starten, folgen Sie diesen Schritten im Projektverzeichnis:
 
 ### Infrastruktur aufbauen und starten
-
+Repo kopieren:
 ```bash
-# In den Ordner navigieren
-cd "hier Pfad einfügen"
+git clone https://github.com/NiklasSchelkle/Cloud-Computing.git
+```
 
+# In den Ordner navigieren
+```bash
+cd "hier Pfad einfügen"
+```
 # Docker Compose starten
+```bash
 docker-compose up --build
+```
 
 Wichtiger Hinweis zum Startprozess (Race Condition):
 Da die PostgreSQL-Datenbank beim ersten Start Zeit zur Initialisierung benötigt, kann es vorkommen, dass die API (flights_api) vorzeitig abbricht, weil die Datenbank noch keine Verbindungen annimmt.
 
 Sollte die API den Status exited with code 1 zeigen, starten Sie diese bitte manuell neu, sobald die Datenbank bereit ist. Ist mir ein paar Mal passiert, obwohl in der Compose eigentlich definiert wurde, dass die API warten muss...
-
+```bash
 docker-compose start api
-
+```
 Oder einfach in Docker auf den Playbutton neben flights_api klicken.
 
 Dann Dashboard aufrufen:
 Öffnen Sie im Browser: http://localhost:8501
-Authentifizierung & Sicherheit
+
+# Authentifizierung & Sicherheit
 
 Das System nutzt eine Multi-Faktor-Authentifizierung (MFA) sowie OAuth2-Tokens.
 Registrierung & Login
@@ -43,7 +50,7 @@ Registrierung & Login
     Login:
     Für den Login werden Username, Passwort und der aktuelle 6-stellige Code aus der App benötigt.
 
-Probleme
+# Probleme
 
     Time-Drift Problematik:
     Der zweite Faktor (TOTP) ist extrem zeitkritisch. Während des Testens habe ich festgestellt, dass es manchmal nicht klappt, obwohl alles richtig ist.
@@ -55,7 +62,7 @@ Probleme
     Bei einem Löschen der Docker-Volumes (-v) werden alle Benutzerdaten entfernt.
     In diesem Fall muss der alte Account in der Duo Mobile App gelöscht und ein neuer QR-Code gescannt werden, da die geheimen Schlüssel (Secrets) bei jeder Registrierung neu generiert werden.
 
-Technische Komponenten
+# Technische Komponenten
 
     Frontend: Streamlit (Zustandsverwaltung via session_state)
 
@@ -64,3 +71,4 @@ Technische Komponenten
     Datenbank: PostgreSQL
 
     Sicherheit: Passlib (Hashing), PyJWT (Tokens), OTP (MFA)
+
