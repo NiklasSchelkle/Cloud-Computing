@@ -1,0 +1,91 @@
+# Beschreibung:
+#   Diese docker-compose.yaml startet eine Multi-Container-Architektur bestehend aus drei Diensten:
+
+#   1. db:eine PostgreSQL-Datenbank zur Speicherung von Flugdaten.
+#   2. api:ein FastAPI-Backend, das als Schnittstelle zur Datenbank dient.
+#   3. dashboard: ein Streamlit-Frontend zur Visualisierung der Daten.
+
+# Features:
+#   Sicherheit: Lädt die Zugangsdaten für die DB aus einer .env-Datei.
+#   Kommunitkation: Alle Conatiner sind über eine interne Bridge (flight_network) verbunden.
+#   Speicher: Volume sorgt dafür, dass die Daten der Datenbank (flights) auch nach dem erneuten starten des Containers noch vorhanden sind.
+
+
+version: '3.8' # Docker Compose Version
+
+services:
+  # PostgreSQL-Datenbank
+  db:  # containername
+    image: postgres:15 # Offizielles PostgreSQL-Image --> Existiert! Also brauche ich keinen Dockerfile!
+    container_name: flights_db
+    # Lädt die Umgebungsvariablen (POSTGRES_USER/PASSWORD) aus der .env-Datei
+    env_file:
+      - ./.env #liegt im selben Verzeichnis wie docker-compose.yaml
+    environment:
+      # Die environment: transportiert die Anweisung, die Datenbank zu erstellen und nutzt dafür automatisch USER und Passwort aus der .env
+      POSTGRES_DB: flights      # konkrete Anweisung mit dem Datenbanknamen
+    ports: # Port-Mapping -> definiert den Zugriff
+      - "5432:5432" # Links: Port auf dem Host-Rechner. Rechts Port im Container
+    volumes: # Definiert Mount-Punkte
+      - db_data:/var/lib/postgresql/data #Interner Pfad im Container (Mount-Punkt) (PostgreSQL speichert hier die Daten)
+    networks: # Ordnet db einem Docker-Netzwer zu
+      - flight_network # Name des Netzwerkes. Ermöglicht anderen Containern (wie der 'api') im selben Netzwerk, diesen Dienst unter seinem Namen ('db') zu erreichen.
+
+  # Ingestion-Service
+  ingestion:
+    build:
+      context: .                   # Schaut im Root-Ordner (Abgabe)
+      dockerfile: ingest.dockerfile # Benutzt  Dockerfile
+    container_name: flights_ingestion
+    depends_on:
+      - db                         # Wartet, bis der DB-Container gestartet ist
+    env_file:
+      - ./.env                     # Lädt USER und PASSWORD für das Skript
+    networks:
+      - flight_network             # Damit das Skript die DB unter "db:5432" findet
+
+
+# FastAPI-Anwendung
+  api: # containername
+    build: # Anweisung, das Container-Image selbst zu bauen (kein fertiges Image) --> Daher dockerfile
+      context: ./api # Pfad zum Ordner, der den Code und den Dockerfile enthält.
+      dockerfile: dockerfile.dockerfile # Die Bauanleitung für das Image.
+    container_name: flights_api 
+    depends_on: # Definiert Abhängigkeiten zu anderen Services.
+      - db # Stellt sicher, dass der 'db'-Container gestartet und initialisiert ist, bevor 'api' startet.
+    ports: # Port-Mapping 
+      - "8000:8000"
+    # Lädt Umgebungsvariablen für die DB
+    env_file: # Importiert Variablen aus .env-Datei.
+      - ./.env 
+    environment: # Definiert Umgebungsvariablen, die direkt in den 'api'-Container injiziert werden.
+      # Verwendet die Variablen (${VARIABLE_NAME}) aus der .env-Datei
+      # Docker Compose ersetzt ${...} automatisch durch die Werte aus .env
+      DATABASE_URL: postgresql+psycopg2://${POSTGRES_USER}:${POSTGRES_PASSWORD}@db:5432/flights
+      # Die vollständige URL für die API, um sich mit der DB zu verbinden.
+      # Der Hostname 'db' wird über das 'flight_network' aufgelöst.
+    networks: 
+      - flight_network # wird diesem Netzwerk zugeordnet
+
+  
+  # Dashboard (Streamlit)
+  dashboard: #name
+    build: # Baut Image selbst
+      context: ./dashboard # Ordnerpfad
+      dockerfile: dashboarddockerfile.dockerfile # Dockerfilename
+    container_name: flights_dashboard
+    depends_on: # Wartet auf api
+      - api
+    ports: # Port Mapping
+      - "8501:8501"
+    networks:
+      - flight_network # wird diesem Netzwerk zugeordnet
+
+# Gemeinsames Netzwerk
+networks: # Definition aller Netzwerke, die verwendet werden.
+  flight_network: # Name des Netzwerks
+    driver: bridge # 'bridge' erstellt ein privates, isoliertes virtuelles Netzwerk für die dienste die diesem zugeordnet wurden
+
+# Persistente Volumes
+volumes: # Definition aller Volumes (Speicher)
+  db_data: # Name unter dem der Mount Punkt (Speicherort bzw. Pfad im Conatainer, wo die db gespeichert ist) im Container definiert ist.
