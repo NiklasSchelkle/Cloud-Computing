@@ -40,35 +40,33 @@ Dann Dashboard aufrufen:
 Das System nutzt eine Multi-Faktor-Authentifizierung (MFA) sowie OAuth2-Tokens.
 Registrierung & Login
 
-    E-Mail-Validierung:
-    Eine Registrierung ist nur mit einer E-Mail-Adresse mit der Endung @FlughafenABC möglich.
-    (Es ist natürlich egal, ob man diese Mail tatsächlich besitzt)
+E-Mail-Validierung:
+Eine Registrierung ist nur mit einer E-Mail-Adresse mit der Endung @FlughafenABC möglich.
+(Es ist natürlich egal, ob man diese Mail tatsächlich besitzt)
 
-    2FA-Einrichtung:
-    Nach der Registrierung wird ein QR-Code angezeigt. Dieser muss mit der Duo Mobile App (oder einer vergleichbaren TOTP-App) gescannt werden.
+2FA-Einrichtung:
+Nach der Registrierung wird ein QR-Code angezeigt. Dieser muss mit der Duo Mobile App (oder einer vergleichbaren TOTP-App) gescannt werden.
 
-    Login:
-    Für den Login werden Username, Passwort und der aktuelle 6-stellige Code aus der App benötigt.
+Login:
+Für den Login werden Username, Passwort und der aktuelle 6-stellige Code aus der App benötigt.
 
 # Probleme
+Time-Drift Problematik:
+Der zweite Faktor (TOTP) ist extrem zeitkritisch. Während des Testens habe ich festgestellt, dass es manchmal nicht klappt, obwohl alles richtig ist.
+Der Grund dafür sind Sekundenunterschiede zwischen dem Host-System (PC) und dem mobilen Endgerät (Handy). Dies kann dazu führen, dass der Login mit 401 Unauthorized abgelehnt wird. Oft habe ich die Seite http://localhost:8501 einfach refreshed und es zu unterschiedlichen Zeitpunkten probiert. Nach ein paar Versuchen hat es dann immer geklappt.
 
-    Time-Drift Problematik:
-    Der zweite Faktor (TOTP) ist extrem zeitkritisch. Während des Testens habe ich festgestellt, dass es manchmal nicht klappt, obwohl alles richtig ist.
-    Der Grund dafür sind Sekundenunterschiede zwischen dem Host-System (PC) und dem mobilen Endgerät (Handy). Dies kann dazu führen, dass der Login mit 401 Unauthorized abgelehnt wird.
-    Oft habe ich die Seite http://localhost:8501
-    einfach refreshed und es zu unterschiedlichen Zeitpunkten probiert. Nach ein paar Versuchen hat es dann immer geklappt.
-
-    Datenbank-Resets:
-    Bei einem Löschen der Docker-Volumes (-v) werden alle Benutzerdaten entfernt.
-    In diesem Fall muss der alte Account in der Duo Mobile App gelöscht und ein neuer QR-Code gescannt werden, da die geheimen Schlüssel (Secrets) bei jeder Registrierung neu generiert werden.
+Datenbank-Resets:
+Bei einem Löschen der Docker-Volumes (-v) werden alle Benutzerdaten entfernt.
+In diesem Fall muss der alte Account in der Duo Mobile App gelöscht und ein neuer QR-Code gescannt werden, da die geheimen Schlüssel (Secrets) bei jeder Registrierung neu generiert werden.
 
 # Technische Komponenten
 
-    Frontend: Streamlit (Zustandsverwaltung via session_state)
+Frontend: Streamlit (Zustandsverwaltung via session_state)
 
-    Backend: FastAPI (Python)
+Backend: FastAPI (Python)
 
-    Datenbank: PostgreSQL
+Datenbank: PostgreSQL
 
-    Sicherheit: Passlib (Hashing), PyJWT (Tokens), OTP (MFA)
+Sicherheit: Passlib (Hashing), PyJWT (Tokens), OTP (MFA)
+
 
