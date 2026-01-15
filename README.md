@@ -69,4 +69,3 @@ Datenbank: PostgreSQL
 
 Sicherheit: Passlib (Hashing), PyJWT (Tokens), OTP (MFA)
 
-
